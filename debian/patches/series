@@ -1,0 +1,5 @@
+01-remove-jdiff-dependency.patch
+03-disable-metrics.patch
+04-disable-jsp-compilation.patch
+#05-ignore-bkjournal.patch
+06-leveldb.patch

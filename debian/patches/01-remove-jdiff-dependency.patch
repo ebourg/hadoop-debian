@@ -1,0 +1,38 @@
+Description: Remove the dependency on jdiff (not in Debian)
+Author: Emmanuel Bourg <ebourg@apache.org>
+Forwarded: not-needed
+--- a/hadoop-common-project/hadoop-annotations/src/main/java/org/apache/hadoop/classification/tools/ExcludePrivateAnnotationsJDiffDoclet.java
++++ b/hadoop-common-project/hadoop-annotations/src/main/java/org/apache/hadoop/classification/tools/ExcludePrivateAnnotationsJDiffDoclet.java
+@@ -21,7 +21,6 @@
+ import com.sun.javadoc.LanguageVersion;
+ import com.sun.javadoc.RootDoc;
+ 
+-import jdiff.JDiff;
+ 
+ /**
+  * A <a href="http://java.sun.com/javase/6/docs/jdk/api/javadoc/doclet/">Doclet</a>
+@@ -39,7 +38,7 @@
+   public static boolean start(RootDoc root) {
+     System.out.println(
+ 	ExcludePrivateAnnotationsJDiffDoclet.class.getSimpleName());
+-    return JDiff.start(RootDocProcessor.process(root));
++    return false;
+   }
+   
+   public static int optionLength(String option) {
+@@ -47,13 +46,13 @@
+     if (length != null) {
+       return length;
+     }
+-    return JDiff.optionLength(option);
++    return 0;
+   }
+   
+   public static boolean validOptions(String[][] options,
+       DocErrorReporter reporter) {
+     StabilityOptions.validOptions(options, reporter);
+     String[][] filteredOptions = StabilityOptions.filterOptions(options);
+-    return JDiff.validOptions(filteredOptions, reporter);
++    return false;
+   }
+ }

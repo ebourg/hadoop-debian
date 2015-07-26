@@ -1,0 +1,215 @@
+Description: Remove the dependency on codahale metrics (not in Debian)
+Author: Emmanuel Bourg <ebourg@apache.org>
+Forwarded: not-needed
+--- a/hadoop-common-project/hadoop-kms/src/main/java/org/apache/hadoop/crypto/key/kms/server/KMSWebApp.java
++++ b/hadoop-common-project/hadoop-kms/src/main/java/org/apache/hadoop/crypto/key/kms/server/KMSWebApp.java
+@@ -17,10 +17,6 @@
+  */
+ package org.apache.hadoop.crypto.key.kms.server;
+ 
+-import com.codahale.metrics.JmxReporter;
+-import com.codahale.metrics.Meter;
+-import com.codahale.metrics.MetricRegistry;
+-
+ import org.apache.hadoop.classification.InterfaceAudience;
+ import org.apache.hadoop.conf.Configuration;
+ import org.apache.hadoop.crypto.key.CachingKeyProvider;
+@@ -65,11 +61,12 @@
+       "decrypt_eek.calls.meter";
+ 
+   private static Logger LOG;
+-  private static MetricRegistry metricRegistry;
++//  private static MetricRegistry metricRegistry;
+ 
+-  private JmxReporter jmxReporter;
++//  private JmxReporter jmxReporter;
+   private static Configuration kmsConf;
+   private static KMSACLs kmsAcls;
++/*
+   private static Meter adminCallsMeter;
+   private static Meter keyCallsMeter;
+   private static Meter unauthorizedCallsMeter;
+@@ -77,6 +74,7 @@
+   private static Meter decryptEEKCallsMeter;
+   private static Meter generateEEKCallsMeter;
+   private static Meter invalidCallsMeter;
++*/
+   private static KMSAudit kmsAudit;
+   private static KeyProviderCryptoExtension keyProviderCryptoExtension;
+ 
+@@ -130,6 +128,7 @@
+       kmsAcls = new KMSACLs();
+       kmsAcls.startReloader();
+ 
++/*
+       metricRegistry = new MetricRegistry();
+       jmxReporter = JmxReporter.forRegistry(metricRegistry).build();
+       jmxReporter.start();
+@@ -145,6 +144,7 @@
+           new Meter());
+       unauthenticatedCallsMeter = metricRegistry.register(
+           UNAUTHENTICATED_CALLS_METER, new Meter());
++*/
+ 
+       kmsAudit =
+           new KMSAudit(kmsConf.getLong(
+@@ -217,9 +217,11 @@
+   public void contextDestroyed(ServletContextEvent sce) {
+     kmsAudit.shutdown();
+     kmsAcls.stopReloader();
++/*
+     jmxReporter.stop();
+     jmxReporter.close();
+     metricRegistry = null;
++*/
+     LOG.info("KMS Stopped");
+   }
+ 
+@@ -230,7 +232,7 @@
+   public static KMSACLs getACLs() {
+     return kmsAcls;
+   }
+-
++/*
+   public static Meter getAdminCallsMeter() {
+     return adminCallsMeter;
+   }
+@@ -258,7 +260,7 @@
+   public static Meter getUnauthenticatedCallsMeter() {
+     return unauthenticatedCallsMeter;
+   }
+-
++*/
+   public static KeyProviderCryptoExtension getKeyProvider() {
+     return keyProviderCryptoExtension;
+   }
+--- a/hadoop-common-project/hadoop-kms/src/main/java/org/apache/hadoop/crypto/key/kms/server/KMS.java
++++ b/hadoop-common-project/hadoop-kms/src/main/java/org/apache/hadoop/crypto/key/kms/server/KMS.java
+@@ -100,7 +100,7 @@
+   @Produces(MediaType.APPLICATION_JSON)
+   @SuppressWarnings("unchecked")
+   public Response createKey(Map jsonKey) throws Exception {
+-    KMSWebApp.getAdminCallsMeter().mark();
++    //KMSWebApp.getAdminCallsMeter().mark();
+     UserGroupInformation user = HttpUserGroupInformation.get();
+     final String name = (String) jsonKey.get(KMSRESTConstants.NAME_FIELD);
+     KMSClientProvider.checkNotEmpty(name, KMSRESTConstants.NAME_FIELD);
+@@ -160,7 +160,7 @@
+   @Path(KMSRESTConstants.KEY_RESOURCE + "/{name:.*}")
+   public Response deleteKey(@PathParam("name") final String name)
+       throws Exception {
+-    KMSWebApp.getAdminCallsMeter().mark();
++    //KMSWebApp.getAdminCallsMeter().mark();
+     UserGroupInformation user = HttpUserGroupInformation.get();
+     assertAccess(KMSACLs.Type.DELETE, user, KMSOp.DELETE_KEY, name);
+     KMSClientProvider.checkNotEmpty(name, "name");
+@@ -185,7 +185,7 @@
+   @Produces(MediaType.APPLICATION_JSON)
+   public Response rolloverKey(@PathParam("name") final String name,
+       Map jsonMaterial) throws Exception {
+-    KMSWebApp.getAdminCallsMeter().mark();
++    //KMSWebApp.getAdminCallsMeter().mark();
+     UserGroupInformation user = HttpUserGroupInformation.get();
+     assertAccess(KMSACLs.Type.ROLLOVER, user, KMSOp.ROLL_NEW_VERSION, name);
+     KMSClientProvider.checkNotEmpty(name, "name");
+@@ -224,7 +224,7 @@
+   @Produces(MediaType.APPLICATION_JSON)
+   public Response getKeysMetadata(@QueryParam(KMSRESTConstants.KEY)
+       List<String> keyNamesList) throws Exception {
+-    KMSWebApp.getAdminCallsMeter().mark();
++    //KMSWebApp.getAdminCallsMeter().mark();
+     UserGroupInformation user = HttpUserGroupInformation.get();
+     final String[] keyNames = keyNamesList.toArray(
+         new String[keyNamesList.size()]);
+@@ -248,7 +248,7 @@
+   @Path(KMSRESTConstants.KEYS_NAMES_RESOURCE)
+   @Produces(MediaType.APPLICATION_JSON)
+   public Response getKeyNames() throws Exception {
+-    KMSWebApp.getAdminCallsMeter().mark();
++    //KMSWebApp.getAdminCallsMeter().mark();
+     UserGroupInformation user = HttpUserGroupInformation.get();
+     assertAccess(KMSACLs.Type.GET_KEYS, user, KMSOp.GET_KEYS);
+ 
+@@ -280,7 +280,7 @@
+       throws Exception {
+     UserGroupInformation user = HttpUserGroupInformation.get();
+     KMSClientProvider.checkNotEmpty(name, "name");
+-    KMSWebApp.getAdminCallsMeter().mark();
++    //KMSWebApp.getAdminCallsMeter().mark();
+     assertAccess(KMSACLs.Type.GET_METADATA, user, KMSOp.GET_METADATA, name);
+ 
+     KeyProvider.Metadata metadata = user.doAs(
+@@ -305,7 +305,7 @@
+       throws Exception {
+     UserGroupInformation user = HttpUserGroupInformation.get();
+     KMSClientProvider.checkNotEmpty(name, "name");
+-    KMSWebApp.getKeyCallsMeter().mark();
++    //KMSWebApp.getKeyCallsMeter().mark();
+     assertAccess(KMSACLs.Type.GET, user, KMSOp.GET_CURRENT_KEY, name);
+ 
+     KeyVersion keyVersion = user.doAs(
+@@ -329,7 +329,7 @@
+       @PathParam("versionName") final String versionName) throws Exception {
+     UserGroupInformation user = HttpUserGroupInformation.get();
+     KMSClientProvider.checkNotEmpty(versionName, "versionName");
+-    KMSWebApp.getKeyCallsMeter().mark();
++    //KMSWebApp.getKeyCallsMeter().mark();
+     assertAccess(KMSACLs.Type.GET, user, KMSOp.GET_KEY_VERSION);
+ 
+     KeyVersion keyVersion = user.doAs(
+@@ -396,7 +396,7 @@
+           " value, it must be " + KMSRESTConstants.EEK_GENERATE + " or " +
+           KMSRESTConstants.EEK_DECRYPT);
+     }
+-    KMSWebApp.getGenerateEEKCallsMeter().mark();
++    //KMSWebApp.getGenerateEEKCallsMeter().mark();
+     return Response.ok().type(MediaType.APPLICATION_JSON).entity(retJSON)
+         .build();
+   }
+@@ -449,7 +449,7 @@
+           " value, it must be " + KMSRESTConstants.EEK_GENERATE + " or " +
+           KMSRESTConstants.EEK_DECRYPT);
+     }
+-    KMSWebApp.getDecryptEEKCallsMeter().mark();
++    //KMSWebApp.getDecryptEEKCallsMeter().mark();
+     return Response.ok().type(MediaType.APPLICATION_JSON).entity(retJSON)
+         .build();
+   }
+@@ -462,7 +462,7 @@
+       throws Exception {
+     UserGroupInformation user = HttpUserGroupInformation.get();
+     KMSClientProvider.checkNotEmpty(name, "name");
+-    KMSWebApp.getKeyCallsMeter().mark();
++    //KMSWebApp.getKeyCallsMeter().mark();
+     assertAccess(KMSACLs.Type.GET, user, KMSOp.GET_KEY_VERSIONS, name);
+ 
+     List<KeyVersion> ret = user.doAs(
+--- a/hadoop-common-project/hadoop-kms/src/main/java/org/apache/hadoop/crypto/key/kms/server/KMSAuthenticationFilter.java
++++ b/hadoop-common-project/hadoop-kms/src/main/java/org/apache/hadoop/crypto/key/kms/server/KMSAuthenticationFilter.java
+@@ -131,13 +131,13 @@
+     if (kmsResponse.statusCode != HttpServletResponse.SC_OK &&
+         kmsResponse.statusCode != HttpServletResponse.SC_CREATED &&
+         kmsResponse.statusCode != HttpServletResponse.SC_UNAUTHORIZED) {
+-      KMSWebApp.getInvalidCallsMeter().mark();
++      //KMSWebApp.getInvalidCallsMeter().mark();
+     }
+ 
+     // HttpServletResponse.SC_UNAUTHORIZED is because the request does not
+     // belong to an authenticated user.
+     if (kmsResponse.statusCode == HttpServletResponse.SC_UNAUTHORIZED) {
+-      KMSWebApp.getUnauthenticatedCallsMeter().mark();
++      //KMSWebApp.getUnauthenticatedCallsMeter().mark();
+       String method = ((HttpServletRequest) request).getMethod();
+       StringBuffer requestURL = ((HttpServletRequest) request).getRequestURL();
+       String queryString = ((HttpServletRequest) request).getQueryString();
+--- a/hadoop-common-project/hadoop-kms/src/main/java/org/apache/hadoop/crypto/key/kms/server/KMSACLs.java
++++ b/hadoop-common-project/hadoop-kms/src/main/java/org/apache/hadoop/crypto/key/kms/server/KMSACLs.java
+@@ -217,7 +217,7 @@
+       UserGroupInformation ugi, KMSOp operation, String key)
+       throws AccessControlException {
+     if (!KMSWebApp.getACLs().hasAccess(aclType, ugi)) {
+-      KMSWebApp.getUnauthorizedCallsMeter().mark();
++      //KMSWebApp.getUnauthorizedCallsMeter().mark();
+       KMSWebApp.getKMSAudit().unauthorized(ugi, operation, key);
+       throw new AuthorizationException(String.format(
+           (key != null) ? UNAUTHORIZED_MSG_WITH_KEY

@@ -1,0 +1,124 @@
+Description: Use the iq80 implementation of leveldb
+Author: Emmanuel Bourg <ebourg@apache.org>
+Forwarded: not-needed
+--- a/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-nodemanager/src/main/java/org/apache/hadoop/yarn/server/nodemanager/recovery/NMLeveldbStateStoreService.java
++++ b/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-nodemanager/src/main/java/org/apache/hadoop/yarn/server/nodemanager/recovery/NMLeveldbStateStoreService.java
+@@ -18,8 +18,8 @@
+ 
+ package org.apache.hadoop.yarn.server.nodemanager.recovery;
+ 
+-import static org.fusesource.leveldbjni.JniDBFactory.asString;
+-import static org.fusesource.leveldbjni.JniDBFactory.bytes;
++import static org.iq80.leveldb.impl.Iq80DBFactory.asString;
++import static org.iq80.leveldb.impl.Iq80DBFactory.bytes;
+ 
+ import java.io.File;
+ import java.io.IOException;
+@@ -54,13 +54,12 @@
+ import org.apache.hadoop.yarn.server.records.impl.pb.VersionPBImpl;
+ import org.apache.hadoop.yarn.server.utils.LeveldbIterator;
+ import org.apache.hadoop.yarn.util.ConverterUtils;
+-import org.fusesource.leveldbjni.JniDBFactory;
+-import org.fusesource.leveldbjni.internal.NativeDB;
+ import org.iq80.leveldb.DB;
+ import org.iq80.leveldb.DBException;
+ import org.iq80.leveldb.Logger;
+ import org.iq80.leveldb.Options;
+ import org.iq80.leveldb.WriteBatch;
++import org.iq80.leveldb.impl.Iq80DBFactory;
+ 
+ import com.google.common.annotations.VisibleForTesting;
+ 
+@@ -839,14 +838,14 @@
+     LOG.info("Using state database at " + storeRoot + " for recovery");
+     File dbfile = new File(storeRoot.toString());
+     try {
+-      db = JniDBFactory.factory.open(dbfile, options);
+-    } catch (NativeDB.DBException e) {
+-      if (e.isNotFound() || e.getMessage().contains(" does not exist ")) {
++      db = Iq80DBFactory.factory.open(dbfile, options);
++    } catch (DBException e) {
++      if (/*e.isNotFound() ||*/ e.getMessage().contains(" does not exist ")) {
+         LOG.info("Creating state database at " + dbfile);
+         isNewlyCreated = true;
+         options.createIfMissing(true);
+         try {
+-          db = JniDBFactory.factory.open(dbfile, options);
++          db = Iq80DBFactory.factory.open(dbfile, options);
+           // store version
+           storeVersion();
+         } catch (DBException dbErr) {
+--- a/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-applicationhistoryservice/src/main/java/org/apache/hadoop/yarn/server/timeline/LeveldbTimelineStore.java
++++ b/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-applicationhistoryservice/src/main/java/org/apache/hadoop/yarn/server/timeline/LeveldbTimelineStore.java
+@@ -20,7 +20,7 @@
+ 
+ import static org.apache.hadoop.yarn.server.timeline.GenericObjectMapper.readReverseOrderedLong;
+ import static org.apache.hadoop.yarn.server.timeline.GenericObjectMapper.writeReverseOrderedLong;
+-import static org.fusesource.leveldbjni.JniDBFactory.bytes;
++import static org.iq80.leveldb.impl.Iq80DBFactory.bytes;
+ 
+ import java.io.ByteArrayOutputStream;
+ import java.io.File;
+@@ -66,7 +66,7 @@
+ import org.apache.hadoop.yarn.proto.YarnServerCommonProtos.VersionProto;
+ import org.apache.hadoop.yarn.server.records.Version;
+ import org.apache.hadoop.yarn.server.records.impl.pb.VersionPBImpl;
+-import org.fusesource.leveldbjni.JniDBFactory;
++import org.iq80.leveldb.impl.Iq80DBFactory;
+ import org.iq80.leveldb.DB;
+ import org.iq80.leveldb.DBException;
+ import org.iq80.leveldb.DBIterator;
+@@ -199,7 +199,7 @@
+     options.cacheSize(conf.getLong(
+         YarnConfiguration.TIMELINE_SERVICE_LEVELDB_READ_CACHE_SIZE,
+         YarnConfiguration.DEFAULT_TIMELINE_SERVICE_LEVELDB_READ_CACHE_SIZE));
+-    JniDBFactory factory = new JniDBFactory();
++    Iq80DBFactory factory = new Iq80DBFactory();
+     Path dbPath = new Path(
+         conf.get(YarnConfiguration.TIMELINE_SERVICE_LEVELDB_PATH), FILENAME);
+     FileSystem localFS = null;
+--- a/hadoop-mapreduce-project/hadoop-mapreduce-client/hadoop-mapreduce-client-shuffle/src/main/java/org/apache/hadoop/mapred/ShuffleHandler.java
++++ b/hadoop-mapreduce-project/hadoop-mapreduce-client/hadoop-mapreduce-client-shuffle/src/main/java/org/apache/hadoop/mapred/ShuffleHandler.java
+@@ -18,8 +18,8 @@
+ 
+ package org.apache.hadoop.mapred;
+ 
+-import static org.fusesource.leveldbjni.JniDBFactory.asString;
+-import static org.fusesource.leveldbjni.JniDBFactory.bytes;
++import static org.iq80.leveldb.impl.Iq80DBFactory.asString;
++import static org.iq80.leveldb.impl.Iq80DBFactory.bytes;
+ import static org.jboss.netty.buffer.ChannelBuffers.wrappedBuffer;
+ import static org.jboss.netty.handler.codec.http.HttpHeaders.Names.CONTENT_TYPE;
+ import static org.jboss.netty.handler.codec.http.HttpMethod.GET;
+@@ -91,12 +91,11 @@
+ import org.apache.hadoop.yarn.server.records.impl.pb.VersionPBImpl;
+ import org.apache.hadoop.yarn.server.utils.LeveldbIterator;
+ import org.apache.hadoop.yarn.util.ConverterUtils;
+-import org.fusesource.leveldbjni.JniDBFactory;
+-import org.fusesource.leveldbjni.internal.NativeDB;
+ import org.iq80.leveldb.DB;
+ import org.iq80.leveldb.DBException;
+ import org.iq80.leveldb.Logger;
+ import org.iq80.leveldb.Options;
++import org.iq80.leveldb.impl.Iq80DBFactory;
+ import org.jboss.netty.bootstrap.ServerBootstrap;
+ import org.jboss.netty.buffer.ChannelBuffers;
+ import org.jboss.netty.channel.Channel;
+@@ -472,13 +471,13 @@
+     LOG.info("Using state database at " + dbPath + " for recovery");
+     File dbfile = new File(dbPath.toString());
+     try {
+-      stateDb = JniDBFactory.factory.open(dbfile, options);
+-    } catch (NativeDB.DBException e) {
+-      if (e.isNotFound() || e.getMessage().contains(" does not exist ")) {
++      stateDb = Iq80DBFactory.factory.open(dbfile, options);
++    } catch (DBException e) {
++      if (/*e.isNotFound() ||*/ e.getMessage().contains(" does not exist ")) {
+         LOG.info("Creating state database at " + dbfile);
+         options.createIfMissing(true);
+         try {
+-          stateDb = JniDBFactory.factory.open(dbfile, options);
++          stateDb = Iq80DBFactory.factory.open(dbfile, options);
+           storeVersion();
+         } catch (DBException dbExc) {
+           throw new IOException("Unable to create state store", dbExc);

@@ -1,0 +1,5 @@
+hadoop (2.6.0-1) unstable; urgency=medium
+
+  * Initial release (Closes: #793644)
+
+ -- Emmanuel Bourg <ebourg@apache.org>  Thu, 02 Jul 2015 14:02:53 +0200

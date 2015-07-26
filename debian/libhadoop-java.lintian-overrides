@@ -1,0 +1,2 @@
+libhadoop-java: codeless-jar usr/share/java/hadoop-assemblies.jar
+libhadoop-java: codeless-jar usr/share/java/hadoop-project-dist.jar

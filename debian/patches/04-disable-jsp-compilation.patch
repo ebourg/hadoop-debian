@@ -1,0 +1,21 @@
+Description: Disable the compilation of the JSPs (missing libraries, removed upstream in the next release)
+Author: Emmanuel Bourg <ebourg@apache.org>
+Forwarded: not-needed
+--- a/hadoop-hdfs-project/hadoop-hdfs/pom.xml
++++ b/hadoop-hdfs-project/hadoop-hdfs/pom.xml
+@@ -372,6 +372,7 @@
+             </goals>
+             <configuration>
+               <target>
++<!--
+                 <loadfile property="hdfs.servlet.definitions" srcFile="${project.build.directory}/hdfs-jsp-servlet-definitions.xml"/>
+                 <loadfile property="secondary.servlet.definitions" srcFile="${project.build.directory}/secondary-jsp-servlet-definitions.xml"/>
+                 <loadfile property="datanode.servlet.definitions" srcFile="${project.build.directory}/datanode-jsp-servlet-definitions.xml"/>
+@@ -382,6 +383,7 @@
+                   </propertyset>
+                 </echoproperties>
+                 <filter filtersfile="${project.build.directory}/webxml.properties"/>
++-->
+                 <copy file="${basedir}/src/main/webapps/proto-hdfs-web.xml"
+                       tofile="${project.build.directory}/webapps/hdfs/WEB-INF/web.xml"
+                       filtering="true"/>

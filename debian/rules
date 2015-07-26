@@ -1,0 +1,24 @@
+#!/usr/bin/make -f
+
+include /usr/share/cdbs/1/rules/debhelper.mk
+include /usr/share/cdbs/1/class/maven.mk
+
+JAVA_HOME := /usr/lib/jvm/default-java
+
+export DEB_BUILD_HARDENING=1
+
+common-build-arch::
+	# Build libhdfs
+	mkdir -p hadoop-hdfs-project/hadoop-hdfs/target/native
+	cd hadoop-hdfs-project/hadoop-hdfs/target/native ; JAVA_HOME=$(JAVA_HOME) cmake ../../src -DGENERATED_JAVAH=../../src/main/native/javah -DJVM_ARCH_DATA_MODEL=64 -DREQUIRE_LIBWEBHDFS=false -DREQUIRE_FUSE=true ; make
+
+common-install-arch::
+	dh_install -p libhdfs0    hadoop-hdfs-project/hadoop-hdfs/target/native/target/usr/local/lib/libhdfs.so.*  usr/lib/${DEB_HOST_MULTIARCH}
+	dh_install -p libhdfs-dev hadoop-hdfs-project/hadoop-hdfs/target/native/target/usr/local/lib/libhdfs.so    usr/lib/${DEB_HOST_MULTIARCH}
+	dh_link    -p libhdfs0    usr/lib/${DEB_HOST_MULTIARCH}/libhdfs.so.0.0.0 usr/lib/${DEB_HOST_MULTIARCH}/libhdfs.so.0
+
+clean::
+	find . -name target -type d | xargs -r rm -Rf
+
+get-orig-source:
+	uscan --download-current-version --force-download --no-symlink
